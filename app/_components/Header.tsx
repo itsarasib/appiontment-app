@@ -1,4 +1,7 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { LoginLink, RegisterLink } from "@kinde-oss/kinde-auth-nextjs";
 import Image from "next/image";
 import React from "react";
 
@@ -28,10 +31,14 @@ const Header = () => {
           </li>
         </ul>
         <div className="flex gap-5">
-          <Button variant="ghost" className=" font-bold">
-            Log in
-          </Button>
-          <Button>Get Started</Button>
+          <LoginLink>
+            <Button variant="ghost" className=" font-bold">
+              Log in
+            </Button>
+          </LoginLink>
+          <RegisterLink>
+            <Button>Get Started</Button>
+          </RegisterLink>
         </div>
       </div>
     </div>
