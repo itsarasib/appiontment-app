@@ -8,6 +8,7 @@ import {
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import MeetingType from "./meeting-type/page";
 
 const Dashboard = () => {
   //init services
@@ -47,10 +48,7 @@ const Dashboard = () => {
 
   return (
     <div>
-      Dashboard
-      <LogoutLink>
-        <Button>Logout</Button>
-      </LogoutLink>
+      <MeetingType />
     </div>
   );
 };
