@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 const DashboardHeader = () => {
   const { user } = useKindeBrowserClient();
@@ -29,12 +30,7 @@ const DashboardHeader = () => {
             height={40}
             className=" rounded-full"
           />
-          <Image
-            src="/chevron-down.svg"
-            alt="chevron-down"
-            width={20}
-            height={20}
-          />
+          <ChevronDown />
         </DropdownMenuTrigger>
         <DropdownMenuContent>
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
