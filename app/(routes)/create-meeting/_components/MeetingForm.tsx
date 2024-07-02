@@ -16,7 +16,7 @@ import LocationOption from "@/app/_utils/LocationOption";
 import Image from "next/image";
 import Link from "next/link";
 import ThemeOptions from "@/app/_utils/ThemeOptions";
-import { FormValues } from "../page";
+import { FormValues } from "@/app/_utils/CreateMeetingType";
 
 interface MeetingFormProps {
   setFormValue: (v: FormValues) => void;
@@ -88,6 +88,7 @@ const MeetingForm: React.FC<MeetingFormProps> = ({ setFormValue }) => {
         <div className="grid grid-cols-4 gap-4">
           {LocationOption.map((option, index) => (
             <div
+              key={index}
               className={`border flex flex-col justify-center items-center rounded-md p-3 hover:bg-primary-100 hover:border-primary cursor-pointer ${
                 locationType === option.name && "bg-primary-100 border-primary"
               }`}
@@ -116,6 +117,7 @@ const MeetingForm: React.FC<MeetingFormProps> = ({ setFormValue }) => {
         <div className="flex justify-evenly">
           {ThemeOptions.map((color, index) => (
             <div
+              key={index}
               className={`h-5 w-5 rounded-full ${
                 themeColor === color && "border-2 border-black"
               } cursor-pointer`}
