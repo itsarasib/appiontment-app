@@ -2,9 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { app } from "@/config/FirebaseConfig";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
-import { deleteDoc, doc, getFirestore, orderBy } from "firebase/firestore";
+import {
+  deleteDoc,
+  doc,
+  getDoc,
+  getFirestore,
+  orderBy,
+} from "firebase/firestore";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { set } from "date-fns";
 import { Clock, Copy, MapPin, Pen, Settings, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -27,13 +32,36 @@ interface EventData {
   createdBy: string;
 }
 
+interface DayAvailability {
+  Sunday?: boolean;
+  Monday?: boolean;
+  Tuesday?: boolean;
+  Wednesday?: boolean;
+  Thursday?: boolean;
+  Friday?: boolean;
+  Saturday?: boolean;
+}
+
+interface BusinessInfoData {
+  businessName: string;
+  email: string;
+  userName: string;
+  startTime: string;
+  endTime: string;
+  dayAvailable: DayAvailability;
+}
+
 const MeetingEventList = () => {
   const db = getFirestore(app);
   const { user } = useKindeBrowserClient();
+  const [businessInfo, setBusinessInfo] = useState<BusinessInfoData | null>(
+    null
+  );
   const [eventList, setEventList] = useState<EventData[]>([]);
 
   useEffect(() => {
     user && getEventList();
+    user && BusinessInfo();
   }, [user]);
 
   const getEventList = async () => {
@@ -54,11 +82,34 @@ const MeetingEventList = () => {
     setEventList(events);
   };
 
+  const BusinessInfo = async () => {
+    if (!user?.email) {
+      toast.error("error!");
+      return;
+    }
+    const docRef = doc(db, "Business", user?.email);
+    const docSnap = await getDoc(docRef);
+    //setBusinessInfo(docSnap.data());
+    console.log(docSnap.data());
+    setBusinessInfo(docSnap.data() as BusinessInfoData);
+  };
+
   const onDeleteMeetingEvent = async (event: EventData) => {
     await deleteDoc(doc(db, "MeetingEvent", event?.id)).then(() => {
       toast("Event deleted successfully");
       getEventList();
     });
+  };
+
+  const onCopyClickHandler = (event: EventData) => {
+    const meetingEventUrl =
+      process.env.NEXT_PUBLIC_BASE_URL +
+      "/" +
+      businessInfo?.businessName +
+      "/" +
+      event.id;
+    navigator.clipboard.writeText(meetingEventUrl);
+    toast("Copied to clipboard");
   };
   return (
     <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-7">
@@ -105,8 +156,7 @@ const MeetingEventList = () => {
               <h2
                 className="flex gap-2 text-sm items-center text-primary cursor-pointer"
                 onClick={() => {
-                  navigator.clipboard.writeText(event.locationUrl);
-                  toast("Copied to clipboard");
+                  onCopyClickHandler(event);
                 }}
               >
                 <Copy className="w-4 h-4" />
