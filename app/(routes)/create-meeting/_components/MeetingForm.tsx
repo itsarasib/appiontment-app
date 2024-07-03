@@ -17,6 +17,12 @@ import Image from "next/image";
 import Link from "next/link";
 import ThemeOptions from "@/app/_utils/ThemeOptions";
 import { FormValues } from "@/app/_utils/CreateMeetingType";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { app } from "@/config/FirebaseConfig";
+import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { create } from "domain";
 
 interface MeetingFormProps {
   setFormValue: (v: FormValues) => void;
@@ -31,6 +37,10 @@ const MeetingForm: React.FC<MeetingFormProps> = ({ setFormValue }) => {
   const [locationUrl, setLocationUrl] = useState<string | undefined>(undefined);
   const [themeColor, setThemeColor] = useState<string | undefined>(undefined);
 
+  const { user } = useKindeBrowserClient();
+  const db = getFirestore(app);
+  const router = useRouter();
+
   useEffect(() => {
     setFormValue({
       eventName: eventName,
@@ -40,6 +50,28 @@ const MeetingForm: React.FC<MeetingFormProps> = ({ setFormValue }) => {
       themeColor: themeColor,
     });
   }, [eventName, duration, locationType, locationUrl, themeColor]);
+
+  const onCreateClick = async () => {
+    if (!user?.email) {
+      toast.error("User email is required to create an event");
+      return;
+    }
+
+    const id = Date.now().toString();
+    await setDoc(doc(db, "MeetingEvent", id), {
+      id: id,
+      eventName: eventName,
+      duration: duration,
+      locationType: locationType,
+      locationUrl: locationUrl,
+      themeColor: themeColor,
+      businessId: doc(db, "Business", user?.email),
+      createdBy: user?.email,
+    }).then((resp) => {
+      toast("New Event created successfully!");
+      router.replace("/dashboard/meeting-type");
+    });
+  };
 
   return (
     <div className="p-8">
@@ -131,6 +163,7 @@ const MeetingForm: React.FC<MeetingFormProps> = ({ setFormValue }) => {
       <Button
         className="w-full mt-9"
         disabled={!eventName || !duration || !locationType || !locationUrl}
+        onClick={() => onCreateClick()}
       >
         Create
       </Button>
