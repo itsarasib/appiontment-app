@@ -1,20 +1,46 @@
 "use client";
 import DaysList from "@/app/_utils/DaysList";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { collection, doc, getFirestore, updateDoc } from "firebase/firestore";
+import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
 import { app } from "@/config/FirebaseConfig";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { toast } from "sonner";
 
 const Availability = () => {
-  const [dayAvailable, setDayAvailable] = useState([]);
+  const [dayAvailable, setDayAvailable] = useState<{ [key: string]: boolean }>({
+    Sunday: false,
+    Monday: false,
+    Tuesday: false,
+    Wednesday: false,
+    Thursday: false,
+    Friday: false,
+    Saturday: false,
+  });
   const [startTime, setStartTime] = useState<string | undefined>(undefined);
   const [endTime, setEndTime] = useState<string | undefined>(undefined);
   const { user } = useKindeBrowserClient();
   const db = getFirestore(app);
+
+  useEffect(() => {
+    user && getBusinessInfo();
+  }, [user]);
+  const getBusinessInfo = async () => {
+    if (!user?.email) {
+      toast.error("User email is required to create an event");
+      return;
+    }
+    const docRef = doc(db, "Business", user?.email);
+    const docSnap = await getDoc(docRef);
+    const result = docSnap.data();
+    if (result) {
+      setDayAvailable(result.dayAvailable);
+      setStartTime(result.startTime);
+      setEndTime(result.endTime);
+    }
+  };
 
   const onHandleChange = (day: string, value: boolean) => {
     setDayAvailable({
@@ -27,7 +53,7 @@ const Availability = () => {
   const handleSave = async () => {
     console.log(dayAvailable, startTime, endTime);
     if (!user?.email) {
-      toast.error("User email is required to create an event");
+      toast.error("User email is required to set the avalability");
       return;
     }
     const docRef = doc(db, "Business", user?.email);
@@ -52,6 +78,9 @@ const Availability = () => {
               <h2>
                 <Checkbox
                   className="mr-1"
+                  checked={
+                    dayAvailable[item.day] ? dayAvailable[item.day] : false
+                  }
                   onCheckedChange={(e) =>
                     onHandleChange(item.day, e as unknown as boolean)
                   }
@@ -67,11 +96,19 @@ const Availability = () => {
         <div className="flex gap-10">
           <div className="mt-3">
             <h2>Start Time</h2>
-            <Input type="time" onChange={(e) => setStartTime(e.target.value)} />
+            <Input
+              type="time"
+              defaultValue={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+            />
           </div>
           <div className="mt-3">
             <h2>End Time</h2>
-            <Input type="time" onChange={(e) => setEndTime(e.target.value)} />
+            <Input
+              type="time"
+              defaultValue={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+            />
           </div>
         </div>
       </div>
