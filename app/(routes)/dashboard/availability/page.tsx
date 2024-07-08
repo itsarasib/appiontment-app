@@ -4,13 +4,29 @@ import React, { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { doc, getDoc, getFirestore, updateDoc } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getFirestore,
+  updateDoc,
+} from "firebase/firestore";
 import { app } from "@/config/FirebaseConfig";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { toast } from "sonner";
 
-const Availability = () => {
-  const [dayAvailable, setDayAvailable] = useState<{ [key: string]: boolean }>({
+interface DaysAvailable {
+  [key: string]: boolean;
+}
+
+interface BusinessInfo {
+  daysAvailable: DaysAvailable;
+  startTime: string;
+  endTime: string;
+}
+
+function Availability() {
+  const [daysAvailable, setDaysAvailable] = useState<DaysAvailable>({
     Sunday: false,
     Monday: false,
     Tuesday: false,
@@ -19,51 +35,51 @@ const Availability = () => {
     Friday: false,
     Saturday: false,
   });
-  const [startTime, setStartTime] = useState<string | undefined>(undefined);
-  const [endTime, setEndTime] = useState<string | undefined>(undefined);
-  const { user } = useKindeBrowserClient();
+  const [startTime, setStartTime] = useState<string>("");
+  const [endTime, setEndTime] = useState<string>("");
   const db = getFirestore(app);
+  const { user } = useKindeBrowserClient();
 
   useEffect(() => {
-    user && getBusinessInfo();
-  }, [user]);
-  const getBusinessInfo = async () => {
-    if (!user?.email) {
-      toast.error("User email is required to create an event");
-      return;
+    if (user) {
+      getBusinessInfo();
     }
-    const docRef = doc(db, "Business", user?.email);
-    const docSnap = await getDoc(docRef);
-    const result = docSnap.data();
-    if (result) {
-      setDayAvailable(result.dayAvailable);
-      setStartTime(result.startTime);
-      setEndTime(result.endTime);
+  }, [user]);
+
+  const getBusinessInfo = async () => {
+    if (user?.email) {
+      const docRef = doc(db, "Business", user.email);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const result = docSnap.data() as BusinessInfo;
+        setDaysAvailable(result.daysAvailable);
+        setStartTime(result.startTime);
+        setEndTime(result.endTime);
+      }
     }
   };
 
   const onHandleChange = (day: string, value: boolean) => {
-    setDayAvailable({
-      ...dayAvailable,
+    setDaysAvailable({
+      ...daysAvailable,
       [day]: value,
     });
-    console.log(dayAvailable);
+
+    console.log(daysAvailable);
   };
 
   const handleSave = async () => {
-    console.log(dayAvailable, startTime, endTime);
-    if (!user?.email) {
-      toast.error("User email is required to set the avalability");
-      return;
+    if (user?.email) {
+      console.log(daysAvailable, startTime, endTime);
+      const docRef = doc(db, "Business", user.email);
+      await updateDoc(docRef, {
+        daysAvailable: daysAvailable,
+        startTime: startTime,
+        endTime: endTime,
+      }).then(() => {
+        toast("Change Updated!");
+      });
     }
-    const docRef = doc(db, "Business", user?.email);
-    await updateDoc(docRef, {
-      dayAvailable: dayAvailable,
-      startTime: startTime,
-      endTime: endTime,
-    }).then(() => {
-      toast("Setup Availability successfully!");
-    });
   };
 
   return (
@@ -71,24 +87,26 @@ const Availability = () => {
       <h2 className="font-bold text-2xl">Availability</h2>
       <hr className="my-7" />
       <div>
-        <h2>Availability Days</h2>
+        <h2 className="font-bold">Availability Days</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 my-3">
-          {DaysList.map((item, index) => (
-            <div key={index}>
-              <h2>
-                <Checkbox
-                  className="mr-1"
-                  checked={
-                    dayAvailable[item.day] ? dayAvailable[item.day] : false
-                  }
-                  onCheckedChange={(e) =>
-                    onHandleChange(item.day, e as unknown as boolean)
-                  }
-                />
-                {item.day}
-              </h2>
-            </div>
-          ))}
+          {DaysList &&
+            DaysList.map((item, index) => (
+              <div key={index}>
+                <h2>
+                  <Checkbox
+                    checked={
+                      daysAvailable && daysAvailable[item.day]
+                        ? daysAvailable[item.day]
+                        : false
+                    }
+                    onCheckedChange={(e) =>
+                      onHandleChange(item.day, e as boolean)
+                    }
+                  />{" "}
+                  {item.day}
+                </h2>
+              </div>
+            ))}
         </div>
       </div>
       <div>
@@ -117,6 +135,6 @@ const Availability = () => {
       </Button>
     </div>
   );
-};
+}
 
 export default Availability;

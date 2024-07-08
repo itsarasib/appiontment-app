@@ -17,12 +17,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface EventData {
+export interface EventData {
   id: string;
   eventName: string;
   duration: number;
@@ -89,8 +87,6 @@ const MeetingEventList = () => {
     }
     const docRef = doc(db, "Business", user?.email);
     const docSnap = await getDoc(docRef);
-    //setBusinessInfo(docSnap.data());
-    console.log(docSnap.data());
     setBusinessInfo(docSnap.data() as BusinessInfoData);
   };
 
