@@ -19,7 +19,10 @@ import {
 } from "firebase/firestore";
 import { app } from "@/config/FirebaseConfig";
 import { toast } from "sonner";
-import { get } from "http";
+import Plunk from "@plunk/node";
+import { render } from "@react-email/components";
+import Email from "@/emails";
+import { useRouter } from "next/navigation";
 
 export interface MeetingTimeDateSelectionProps {
   eventInfo: EventInfoProps | null;
@@ -40,7 +43,11 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
   const [userNote, setUserNote] = useState<string | null>("");
   const [prevBooking, setPrevBooking] = useState<DocumentData[]>([]);
 
+  const router = useRouter();
+
   const db = getFirestore(app);
+
+  const plunk = new Plunk(process.env.NEXT_PUBLIC_PLUNK_API_KEY ?? "");
 
   useEffect(() => {
     eventInfo?.duration && createTimeSlot(eventInfo?.duration);
@@ -80,7 +87,10 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
   };
 
   const handleScheduleEvent = async () => {
-    const regex = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[A-Za-z]{2,4}$/;
+    //can't use .
+    //const regex = /^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[A-Za-z]{2,4}$/;
+    //can use .
+    const regex = /^[a-zA-Z0-9.]+@[a-zA-Z0-9]+\.[A-Za-z]{2,4}$/;
     if (regex.test(userEmail ?? "") == false) {
       toast("Enter a valid email address");
       return;
@@ -101,7 +111,32 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
       userNote: userNote,
     }).then(() => {
       toast("Meeting Scheduled Successfully!");
+      sendEmail(userName);
     });
+  };
+
+  const sendEmail = (user: string | null) => {
+    const emailHtml = render(
+      <Email
+        businessName={businessInfo?.businessName as string}
+        date={format(date as Date, "PPP")}
+        duration={eventInfo?.duration as number}
+        meetingTime={selectedTime as string}
+        meetingUrl={eventInfo?.locationUrl as string}
+        userFirstName={user as string}
+      />
+    );
+
+    plunk.emails
+      .send({
+        to: userEmail as string,
+        subject: "New Meeting Schedule Details",
+        body: emailHtml,
+      })
+      .then((resp) => {
+        console.log(resp);
+        router.replace("/confirmation");
+      });
   };
 
   const getPrevEventBooking = async (date_: Date) => {
