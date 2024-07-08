@@ -7,9 +7,19 @@ import { BusinessInfoProps, EventInfoProps } from "../page";
 import { format } from "date-fns";
 import TimeDateSelection from "./TimeDateSelection";
 import UserFormInfo from "./UserFormInfo";
-import { getFirestore, setDoc, doc } from "firebase/firestore";
+import {
+  getFirestore,
+  setDoc,
+  doc,
+  query,
+  collection,
+  where,
+  getDocs,
+  DocumentData,
+} from "firebase/firestore";
 import { app } from "@/config/FirebaseConfig";
 import { toast } from "sonner";
+import { get } from "http";
 
 export interface MeetingTimeDateSelectionProps {
   eventInfo: EventInfoProps | null;
@@ -28,6 +38,7 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
   const [userName, setUserName] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userNote, setUserNote] = useState<string | null>("");
+  const [prevBooking, setPrevBooking] = useState<DocumentData[]>([]);
 
   const db = getFirestore(app);
 
@@ -61,6 +72,7 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
         day as keyof BusinessInfoProps["daysAvailable"]
       ]
     ) {
+      getPrevEventBooking(date);
       setEnableTimeSlots(true);
     } else {
       setEnableTimeSlots(false);
@@ -89,6 +101,20 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
       userNote: userNote,
     }).then(() => {
       toast("Meeting Scheduled Successfully!");
+    });
+  };
+
+  const getPrevEventBooking = async (date_: Date) => {
+    const q = query(
+      collection(db, "ScheduledMeeting"),
+      where("selectedDate", "==", date_),
+      where("eventId", "==", eventInfo?.id)
+    );
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      console.log("--", doc.data());
+      setPrevBooking((prev) => [...prev, doc.data()]);
     });
   };
 
@@ -146,6 +172,7 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
               handleDateChange={handleDateChange}
               setSelectedTime={setSelectedTime}
               selectedTime={selectedTime}
+              prevBooking={prevBooking}
             />
           ) : (
             <UserFormInfo

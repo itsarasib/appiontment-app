@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { DocumentData } from "firebase/firestore";
 import React from "react";
 
 interface TimeDateSelectionProps {
@@ -9,6 +10,7 @@ interface TimeDateSelectionProps {
   handleDateChange: (date: Date) => void;
   setSelectedTime: (time: string) => void;
   selectedTime: string | null;
+  prevBooking: DocumentData[];
 }
 
 const TimeDateSelection: React.FC<TimeDateSelectionProps> = ({
@@ -18,7 +20,14 @@ const TimeDateSelection: React.FC<TimeDateSelectionProps> = ({
   enableTimeSlots,
   setSelectedTime,
   selectedTime,
+  prevBooking,
 }) => {
+  const checkTimeSlot = (time: any) => {
+    return (
+      prevBooking.filter((booking) => booking.selectedTime === time).length > 0
+    );
+  };
+
   return (
     <div className="md:col-span-2 flex p-4">
       <div className="flex flex-col">
@@ -37,7 +46,7 @@ const TimeDateSelection: React.FC<TimeDateSelectionProps> = ({
       >
         {timeSlots?.map((slot, index) => (
           <Button
-            disabled={!enableTimeSlots}
+            disabled={!enableTimeSlots || checkTimeSlot(slot)}
             onClick={() => setSelectedTime(slot)}
             variant="outline"
             className={`border-primary text-primary ${
