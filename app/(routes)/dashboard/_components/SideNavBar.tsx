@@ -18,7 +18,7 @@ const SideNavBar = () => {
     {
       id: 2,
       name: "Scheduled Meeting",
-      path: "/dashboard/scheduled",
+      path: "/dashboard/scheduled-meeting",
       icon: Calendar,
     },
     {
@@ -40,7 +40,7 @@ const SideNavBar = () => {
 
   useEffect(() => {
     path && setActivePath(path);
-  }, []);
+  }, [path]);
 
   return (
     <div className="p-5 py-14">

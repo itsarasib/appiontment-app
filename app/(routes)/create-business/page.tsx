@@ -37,16 +37,14 @@ const CreateBusiness = () => {
     <div className="flex flex-col items-center p-14">
       <Image src="/logo.svg" alt="logo" width={200} height={200} />
       <div className="flex flex-col items-center gap-4 max-w-3xl">
-        <h2 className="text-4xl font-bold">
-          What should we call your business?
-        </h2>
+        <h2 className="text-4xl font-bold">What should we call you?</h2>
         <p className="text-slate-500">
-          You can always change this later from settings
+          User will see this name when they book a meeting with you on Email.
         </p>
         <div className=" w-full">
-          <label className=" text-slate-500">Team Name?</label>
+          <label className=" text-slate-500">Name</label>
           <Input
-            placeholder="Ex. Night Party"
+            placeholder="Ex. John Doe"
             className="mt-2"
             onChange={(event) => setBusinessName(event.target.value)}
           />

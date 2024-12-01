@@ -14,19 +14,10 @@ import {
 import { app } from "@/config/FirebaseConfig";
 import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import { toast } from "sonner";
-
-interface DaysAvailable {
-  [key: string]: boolean;
-}
-
-interface BusinessInfo {
-  daysAvailable: DaysAvailable;
-  startTime: string;
-  endTime: string;
-}
+import { BusinessInfoData, DayAvailability } from "@/app/global-types";
 
 function Availability() {
-  const [daysAvailable, setDaysAvailable] = useState<DaysAvailable>({
+  const [daysAvailable, setDaysAvailable] = useState<DayAvailability>({
     Sunday: false,
     Monday: false,
     Tuesday: false,
@@ -39,6 +30,7 @@ function Availability() {
   const [endTime, setEndTime] = useState<string>("");
   const db = getFirestore(app);
   const { user } = useKindeBrowserClient();
+  console.log("daysAvailable", daysAvailable);
 
   useEffect(() => {
     if (user) {
@@ -51,8 +43,9 @@ function Availability() {
       const docRef = doc(db, "Business", user.email);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        const result = docSnap.data() as BusinessInfo;
-        setDaysAvailable(result.daysAvailable);
+        const result = docSnap.data() as BusinessInfoData;
+        console.log("result", result);
+        setDaysAvailable(result.daysAvailable as DayAvailability);
         setStartTime(result.startTime);
         setEndTime(result.endTime);
       }

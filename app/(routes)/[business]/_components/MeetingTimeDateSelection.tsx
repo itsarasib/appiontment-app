@@ -3,7 +3,6 @@ import { CalendarCheck, Clock, MapPin, Timer } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
-import { BusinessInfoProps, EventInfoProps } from "../page";
 import { format } from "date-fns";
 import TimeDateSelection from "./TimeDateSelection";
 import UserFormInfo from "./UserFormInfo";
@@ -23,10 +22,11 @@ import Plunk from "@plunk/node";
 import { render } from "@react-email/components";
 import Email from "@/emails";
 import { useRouter } from "next/navigation";
+import { BusinessInfoData, EventData } from "@/app/global-types";
 
 export interface MeetingTimeDateSelectionProps {
-  eventInfo: EventInfoProps | null;
-  businessInfo: BusinessInfoProps | null;
+  eventInfo: EventData | null;
+  businessInfo: BusinessInfoData | null;
 }
 
 const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
@@ -35,6 +35,7 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
 }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
+
   const [enableTimeSlots, setEnableTimeSlots] = useState<boolean>(false);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [step, setStep] = useState<number>(1);
@@ -76,7 +77,7 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
     const day = format(date, "EEEE");
     if (
       businessInfo?.daysAvailable?.[
-        day as keyof BusinessInfoProps["daysAvailable"]
+        day as keyof BusinessInfoData["daysAvailable"]
       ]
     ) {
       getPrevEventBooking(date);
@@ -97,11 +98,13 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
     }
 
     const docId = Date.now().toString();
-    await setDoc(doc(db, "ScheduledMeeting", docId), {
+    await setDoc(doc(db, "ScheduledMeetings", docId), {
       businessName: businessInfo?.businessName,
       businessEmail: businessInfo?.email,
       selectedTime: selectedTime,
       selectedDate: date,
+      formatedDate: format(date as Date, "PPP"),
+      formatedTimeStamp: format(date as Date, "t"),
       duration: eventInfo?.duration,
       locationUrl: eventInfo?.locationUrl,
       eventId: eventInfo?.id,
@@ -141,7 +144,7 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
 
   const getPrevEventBooking = async (date_: Date) => {
     const q = query(
-      collection(db, "ScheduledMeeting"),
+      collection(db, "ScheduledMeetings"),
       where("selectedDate", "==", date_),
       where("eventId", "==", eventInfo?.id)
     );

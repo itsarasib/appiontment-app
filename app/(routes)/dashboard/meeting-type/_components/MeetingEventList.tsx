@@ -5,6 +5,7 @@ import { useKindeBrowserClient } from "@kinde-oss/kinde-auth-nextjs";
 import {
   deleteDoc,
   doc,
+  DocumentReference,
   getDoc,
   getFirestore,
   orderBy,
@@ -19,35 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export interface EventData {
-  id: string;
-  eventName: string;
-  duration: number;
-  locationType: string;
-  locationUrl: string;
-  themeColor: string;
-  createdBy: string;
-}
-
-interface DayAvailability {
-  Sunday?: boolean;
-  Monday?: boolean;
-  Tuesday?: boolean;
-  Wednesday?: boolean;
-  Thursday?: boolean;
-  Friday?: boolean;
-  Saturday?: boolean;
-}
-
-interface BusinessInfoData {
-  businessName: string;
-  email: string;
-  userName: string;
-  startTime: string;
-  endTime: string;
-  dayAvailable: DayAvailability;
-}
+import { BusinessInfoData, EventData } from "@/app/global-types";
 
 const MeetingEventList = () => {
   const db = getFirestore(app);
@@ -56,6 +29,8 @@ const MeetingEventList = () => {
     null
   );
   const [eventList, setEventList] = useState<EventData[]>([]);
+  console.log("eventList", eventList);
+  console.log("businessInfo", businessInfo);
 
   useEffect(() => {
     user && getEventList();
@@ -168,7 +143,7 @@ const MeetingEventList = () => {
           </div>
         ))
       ) : (
-        <h2>Loading...</h2>
+        <h2>No Event List</h2>
       )}
     </div>
   );

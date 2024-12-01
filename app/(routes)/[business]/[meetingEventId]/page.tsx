@@ -9,50 +9,24 @@ import {
   getDocs,
   doc,
   getDoc,
-  DocumentReference,
 } from "firebase/firestore";
-import MeetingTimeDateSelection from "./_components/MeetingTimeDateSelection";
+import MeetingTimeDateSelection from "../_components/MeetingTimeDateSelection";
+import { BusinessInfoData, EventData } from "@/app/global-types";
 
-interface Params {
+interface ParamsProps {
   business: string;
   meetingEventId: string;
 }
 
-export interface BusinessInfoProps {
-  businessName: string;
-  email: string;
-  endTime: string;
-  startTime: string;
-  userName: string;
-  daysAvailable: {
-    Monday: boolean;
-    Tuesday: boolean;
-    Wednesday: boolean;
-    Thursday: boolean;
-    Friday: boolean;
-    Saturday: boolean;
-    Sunday: boolean;
-  };
-}
-
-export interface EventInfoProps {
-  businessId: DocumentReference;
-  createdBy: string;
-  duration: number;
-  eventName: string;
-  id: string;
-  locationType: string;
-  locationUrl: string;
-  themeColor: string;
-}
-
-const SharedMeetingEvent: React.FC<{ params: Params }> = ({ params }) => {
+const SharedMeetingEvent: React.FC<{ params: ParamsProps }> = ({ params }) => {
   const db = getFirestore(app);
-  const [businessInfo, setBusinessInfo] = useState<BusinessInfoProps | null>(
+  const [businessInfo, setBusinessInfo] = useState<BusinessInfoData | null>(
     null
   );
-  const [eventInfo, setEventInfo] = useState<EventInfoProps | null>(null);
+  const [eventInfo, setEventInfo] = useState<EventData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  console.log("businessInfo", businessInfo);
+  console.log("eventInfo", eventInfo);
 
   useEffect(() => {
     if (params) {
@@ -69,14 +43,14 @@ const SharedMeetingEvent: React.FC<{ params: Params }> = ({ params }) => {
     );
     const docSnap = await getDocs(q);
     docSnap.forEach((doc) => {
-      setBusinessInfo(doc.data() as BusinessInfoProps);
+      setBusinessInfo(doc.data() as BusinessInfoData);
     });
 
     // Get the meeting event details
     const docRef = doc(db, "MeetingEvent", params.meetingEventId);
     const docSnapMeetingEvent = await getDoc(docRef);
     if (docSnapMeetingEvent.exists()) {
-      setEventInfo(docSnapMeetingEvent.data() as EventInfoProps);
+      setEventInfo(docSnapMeetingEvent.data() as EventData);
       console.log(docSnapMeetingEvent.data());
     }
 
