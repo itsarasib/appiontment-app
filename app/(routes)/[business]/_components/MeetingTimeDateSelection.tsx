@@ -72,15 +72,22 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
     setTimeSlots(slots);
   };
 
-  const handleDateChange = (date: Date) => {
-    setDate(date);
-    const day = format(date, "EEEE");
+  const handleDateChange = (selectedDate: Date | undefined) => {
+    if (!selectedDate) {
+      setEnableTimeSlots(false); // Disable time slots if no valid date is selected
+      setDate(undefined);
+      return;
+    }
+
+    setDate(selectedDate);
+    const day = format(selectedDate, "EEEE");
+
     if (
       businessInfo?.daysAvailable?.[
         day as keyof BusinessInfoData["daysAvailable"]
       ]
     ) {
-      getPrevEventBooking(date);
+      getPrevEventBooking(selectedDate);
       setEnableTimeSlots(true);
     } else {
       setEnableTimeSlots(false);
