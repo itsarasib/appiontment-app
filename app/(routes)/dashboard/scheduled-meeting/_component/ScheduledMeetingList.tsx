@@ -58,12 +58,6 @@ const ScheduledMeetingList: React.FC<ScheduledMeetingListProps> = ({
           </Accordion>
         ))}
     </div>
-
-    //   <div>
-    //       {meetingList && meetingList.map((meeting, index) => (
-
-    //       ))}
-    //   </div>
   );
 };
 

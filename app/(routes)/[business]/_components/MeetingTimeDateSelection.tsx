@@ -182,8 +182,9 @@ const MeetingTimeDateSelection: React.FC<MeetingTimeDateSelectionProps> = ({
               </h2>
               <h2 className="flex gap-2">
                 <CalendarCheck />
-                {format(date as Date, "PPP")}
+                {date ? format(date, "PPP") : "No date selected"}
               </h2>
+
               <h2 className="flex gap-2">
                 <Timer />
                 {selectedTime ? (
